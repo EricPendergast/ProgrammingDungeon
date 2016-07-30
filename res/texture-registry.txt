@@ -1,0 +1,4 @@
+#This is the texture registry file
+#It contains each texture name and its corresponding texture file, separated by a space
+#Comments start with a '#'
+default res/tex/default.png

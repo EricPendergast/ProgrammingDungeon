@@ -1,0 +1,20 @@
+int s;
+int i;
+int j;
+int hello;
+int prime;
+
+
+prime = 107;
+
+s = prime-1;
+while(prime%s != 0){
+    s--;
+}
+
+s = s > 1;
+
+while(i < 10){
+    i++;
+}
+j = 0;
