@@ -1,0 +1,5 @@
+int isAtRight;
+int isMovingLeft;
+if(!(isAtRight == 0)){
+    isMovingLeft = 1;
+}

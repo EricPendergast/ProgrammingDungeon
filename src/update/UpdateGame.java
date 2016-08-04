@@ -5,13 +5,14 @@
  */
 package update;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  *
  * @author eric
  */
-public class UpdateGame implements Runnable{
+public class UpdateGame implements Runnable, Serializable{
 	public final int MAP_WIDTH = 10;
 	public final int MAP_HEIGHT = 10;
 	//entities[x][y] gives the entity at square (x,y)

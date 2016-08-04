@@ -5,13 +5,14 @@
  */
 package update;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  *
  * @author eric
  */
-public class Tile {
+public class Tile implements Serializable{
 	private Entity entity;
 	//private Block block;
 	//private SecondaryEntity sEntity;

@@ -5,10 +5,12 @@
  */
 package update;
 
+import java.io.Serializable;
+
 /**
  *
  * @author eric
  */
-public interface Action {
+public interface Action extends Serializable{
 	public void act(Tile[][] tiles);
 }

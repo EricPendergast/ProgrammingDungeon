@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package update;
 
 import java.util.HashMap;
@@ -13,7 +8,7 @@ import java.util.HashMap;
  */
 //has an array for memory and has an array of instructions
 //executes the insructions to act on the memory
-public class AssemblyExecutor {
+public class BytecodeExecutor {
 	//moves the value at index arg1 to index arg0
 	public static final int mov = 1;
 	//moves the VALUE OF arg1 to the INDEX arg0
@@ -129,6 +124,10 @@ public class AssemblyExecutor {
 	public static final int orlv = 72;
 	public static final int andvv = 73;
 	public static final int orvv = 74;
+	
+	public static final int notl = 75;
+	public static final int notv = 76;
+	
 	//TODO notl and notv
 	//does nothing
 	//nop means "no operation"
@@ -219,17 +218,29 @@ public class AssemblyExecutor {
 		possibleInstructions.put("evv", evv);
 		possibleInstructions.put("nevv", nevv);
 		
+		possibleInstructions.put("andll", andll);
+		possibleInstructions.put("orll", orll);
+		possibleInstructions.put("andlv", andlv);
+		possibleInstructions.put("orlv", orlv);
+		possibleInstructions.put("andvl", andvl);
+		possibleInstructions.put("orvl", orvl);
+		possibleInstructions.put("andvv", andvv);
+		possibleInstructions.put("orvv", orvv);
+		
+		possibleInstructions.put("notl", notl);
+		possibleInstructions.put("notv", notv);
+		
 		possibleInstructions.put("nop", nop);
 	}
-	private int[] instructions;
-	private int[] memory;
-	
-	public AssemblyExecutor(int[] i, int[] m){
-		instructions = i;
-		memory = m;
-	}
+//	private int[] instructions;
+//	private int[] memory;
+//
+//	public AssemblyExecutor(int[] i, int[] m){
+//		instructions = i;
+//		memory = m;
+//	}
 	//executes the insructions and acts on the memory
-	public void execute(){
+	public static void execute(int[] instructions, int[] memory){
 		//the instruction pointer, 
 		//ie the index of the command that is currently being executed
 		int ip = 0;
@@ -240,12 +251,12 @@ public class AssemblyExecutor {
 			//System.out.println("Instruction " + ip);
 			//each instruction consists of 4 ints, so the ip
 			//has to be incremented by four to get to the next instruction
-			ip += 4*executeInstruction(instructions[ip], instructions[ip+1], instructions[ip+2], instructions[ip+3]);
+			ip += 4*executeInstruction(instructions[ip], instructions[ip+1], instructions[ip+2], instructions[ip+3], memory);
 			
 		}
 	}
 	//executes the instruction, and then returns how many instructions the IP should move
-	private int executeInstruction(int instruction, int arg0, int arg1, int arg2){
+	private static int executeInstruction(int instruction, int arg0, int arg1, int arg2, int[] memory){
 		
 		switch(instruction){
 			case mov:
@@ -434,6 +445,13 @@ public class AssemblyExecutor {
 			case orvv:
 				memory[arg0] = arg1 != 0 || arg2 != 0 ? 1 : 0;
 				break;
+			
+			case notl:
+				memory[arg0] = memory[arg1] == 0 ? 1 : 0;
+				break;
+			case notv:
+				memory[arg0] = arg1 == 0 ? 1 : 0;
+			
 			case nop:
 				//do nothing
 				break;
@@ -443,20 +461,28 @@ public class AssemblyExecutor {
 		return 1;
 	}
 	
-	public void setInstructions(int[] i){instructions = i;}
-	public int[] getInstructions(){return instructions;}
-	public void setMemory(int[] m){memory = m;}
-	public int[] getMemory(){return memory;}
-	
-	public void putByte(int index, int b){
-		instructions[index] = b;
-	}
-	public void putInstruction(int index, int ... args){
-		index *= 4;
-		for(int i = 0; i < args.length; i++){
-			instructions[index + i] = args[i];
-		}
-	}
+//	public void setInstructions(int[] i){instructions = i;}
+//	public int[] getInstructions(){return instructions;}
+//	public void setMemory(int[] m){memory = m;}
+//	public int[] getMemory(){return memory;}
+//
+//	public void putByte(int index, int b){
+//		instructions[index] = b;
+//	}
+//	public void putInstruction(int index, int ... args){
+//		index *= 4;
+//		for(int i = 0; i < args.length; i++){
+//			instructions[index + i] = args[i];
+//		}
+//	}
+//
+//	public String dumpMemory(){
+//		String ret = "";
+//		for(int i = 0; i < memory.length; i++){
+//			ret += i + ":\t" + memory[i] + "\n";
+//		}
+//		return ret;
+//	}
 }
 
 

@@ -5,36 +5,41 @@
  */
 package update;
 
-import java.util.LinkedList;
+import java.io.File;
+import java.io.Serializable;
 
 /**
  *
  * @author eric
  */
-public abstract class Entity {
+public abstract class Entity implements Serializable{
 	//The thing that makes all the decisions about what to do
 	//Contains the memory and the instructions, and executes the instructions
 	//on the memory
-	private AssemblyExecutor brain;
+//	private AssemblyExecutor brain;
+	
+	private Compiler compiler;
+	
 	//the instructions
-	protected final int[] instruc;
+	protected int[] instruc;
 	//What the instructions act on.
 	//Values in the memory will be altered by the instructions, and then methods can 
 	//choose to do things based off of whats in the memory.
 	//For example, there might be a index in the memory that corresponds to 
 	//speed moving left, so the update method will decide to go left when it sees
 	//this value.
-	protected final int[] memory;
+	protected int[] memory;
 	public Entity(int instrucSize, int memSize){
 		instruc = new int[instrucSize*4];
 		memory = new int[memSize];
-		brain = new AssemblyExecutor(instruc,memory);
+		//brain = new AssemblyExecutor(instruc,memory);
+		compiler = new Compiler();
 	}
 	public int[] pos = null;
 	public abstract Action update(Tile parent);
 	public String renderGetInfo(){return "@default";}
 	protected void executeInstructions(){
-		brain.execute();
+		BytecodeExecutor.execute(instruc, memory);
 	}
 	protected void putInstruction(int index, int ... args){
 		index *= 4;
@@ -42,7 +47,31 @@ public abstract class Entity {
 			instruc[index + i] = args[i];
 		}
 	}
+//	protected String dumpMemory(){
+//		return brain.dumpMemory();
+//	}
+	protected void putByte(int index, int b){
+		instruc[index] = b;
+	}
+	protected String dumpMemory(){
+		String ret = "";
+		for(int i = 0; i < memory.length; i++){
+			ret += i + ":\t" + memory[i] + "\n";
+		}
+		return ret;
+	}
 	public int getX(){return pos[0];}
 	public int getY(){return pos[1];}
-	
+	protected void compile(){
+		instruc = compiler.compile();
+	}
+	protected void setCode(String code){
+		compiler.setCode(code);
+	}
+	protected void setCodeFromFile(File file){
+		compiler.setCodeFromFile(file);
+	}
+	protected void setCompilerDebugMode(boolean b){
+		compiler.debugMode = b;
+	}
 }

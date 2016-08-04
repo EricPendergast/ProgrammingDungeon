@@ -1,20 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package update;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
+import java.util.LinkedList;
 
 /**
  *
  * @author eric
  */
-public class Compiler {
-	public boolean debugMode = true;
+public class Compiler implements Serializable{
+	public boolean debugMode = false;
 	private String code;
 	//This int keeps track of the newest open spot in memory
 	//It is used to allocate all the variables
@@ -26,42 +23,26 @@ public class Compiler {
 	//so the program can easily find out where to jump to when there is a conditional
 	//or a loop
 	private int lblCounter;
-	private AssemblyExecutor run;
+	//private AssemblyExecutor run;
 	
-	public Compiler(AssemblyExecutor r){
-		run = r;
-	}
-	//When compiling, the code goes through stages.
-	//The first stage is the original source code the user created.
-	//The next stage is when all the whitespace is trimmed. This makes the code syntax
-	//more predictable and makes compiling easier.
-	//The next stage is when all the variables are replaced with their raw
-	//memory location. So, for example, a variable "i" might be changed to "$43$", where 43 is
-	//the index in memory that "i" points to.
-	//The next stage is when the code is turned into a series of statements 
-	//separated by semicolons. Essentially, all if's and while's are turned into
-	//jumps and assignments.
-	//
-	public void compile(){
+	public Compiler(){}
+	/*
+	 * The way this compiler works is that the code goes through stages.
+	 * In each stage, the code is  changed in a way that makes it easier to convert to bytecode,
+	 * and easier to convert to the next stage.
+	 */
+	public int[] compile(){
 		/*
 		 * This stage is when all the whitespace is trimmed. This makes the code 
 		 * syntax more predictable and makes compiling easier.
 		 */
 		trimWhitespace();
 		/*
-		 * This stage is when all the variables are replaced with their raw 
-		 * memory location. So, for example, a variable "i" might be changed to 
-		 * "$43$", where 43 is the index in memory that "i" points to. This stage
-		 * can be thought of as the part where the memory is allocated.
-		 */
-		initVariables();
-		/*
 		 * In this stage, the code blocks are labeled, which means that each brace
 		 * has a number that matches it with its corresponding opening/closing
 		 * brace. Example: "{{statement;}}" would be changed to {0;{1;statement;}1;}0;
 		 * Note that a semicolon is added after each brace and number. This is
-		 * so that every brace is now a statement. This will be important in the
-		 * next stage. Also all the ifs and whiles are changed to statements
+		 * so that every brace is now a statement. Also all the ifs and whiles are changed to statements
 		 * because, for example, "if(something){}" will be changed to
 		 * "if(something){0;}0;", where "if(something){0;" is one statement.
 		 * After this stage, every statement is separated by semicolons.
@@ -71,13 +52,23 @@ public class Compiler {
 			System.out.println("LABEL_CODE_BLOCKS:\n" + this);
 		}
 		/*
+		 * This stage is when all the variables are replaced with their raw
+		 * memory location. So, for example, a variable "i" might be changed to
+		 * "$43$", where 43 is the index in memory that "i" points to. This stage
+		 * can be thought of as the part where the memory is allocated.
+		 */
+		initVariables();
+		if(debugMode){
+			System.out.println("INIT_VARIABLES:\n" + this);
+		}
+		/*
 		 * Converts if statements and while statements to a series of jump,
 		 * conditional jump, and assignment operations.
 		 */
 		convertIfsWhiles();
 		if(debugMode){
 			System.out.println("CONVERT_IFS_WHILES:\n" + this);
-		}
+	}
 		/*
 		 * In this stage, all assignment operations, such as "$5$=5*(6+7);", are
 		 * replaced with a series of statements where each one only has two numbers
@@ -107,7 +98,8 @@ public class Compiler {
 		if(debugMode){
 			System.out.println("CONVERT_TO_ASSEMBLY:\n" + this);
 		}
-		writeByteCode();
+		
+		return writeByteCode();
 	}
 	
 	private void trimWhitespace(){
@@ -131,6 +123,7 @@ public class Compiler {
 	//and replaces every occurence of the variable in the code with "$" + memorylocation +"$"
 	//all variable declarations should all be in the form "int <variable name>;"
 	private void initVariables(){
+		
 		//as long as there is a proper variable declaration, keep allocating variables
 		while(code.matches("int [a-zA-Z][a-zA-Z0-9]*;.*")){
 			//getting the name of the variable
@@ -186,12 +179,15 @@ public class Compiler {
 			if(lastHalf.charAt(i) == ';'){
 				String statement = lastHalf.substring(0, i+1);
 				
-				if(statement.matches("^((while)).*")){
+				if(statement.matches("^(while).*")){
 					String braceID = statement.substring(statement.indexOf("{")+1, statement.indexOf(";"));
-					//System.out.println("S" + braceID);
-					//                                 1         2      3   4
+					//labeling the groups:             1         2      3   4
 					statement = statement.replaceAll("^(while)\\((.*)\\)(\\{([0-9]+)\\;)", "$3\\$"+openMemory+"\\$=$2;jif \\$"+openMemory+"\\$;jmp}$4;");
-					lastHalf = lastHalf.replaceFirst("\\;(\\}("+braceID+")\\;)", ";jmp{$2;$1");
+					lastHalf = lastHalf.replaceFirst("\\;(\\}("+braceID+");)", ";jmp{$2;$1");
+				}else if(statement.matches("^(if).*")){
+					String braceID = statement.substring(statement.indexOf("{")+1, statement.indexOf(";"));
+					//labeling the groups:             1      2      3   4
+					statement = statement.replaceAll("^(if)\\((.*)\\)(\\{([0-9]+)\\;)", "\\$"+openMemory+"\\$=$2;jif \\$"+openMemory+"\\$;jmp}$4;");
 				}
 				//System.out.println(statement);
 				lastHalf = lastHalf.substring(i+1);
@@ -200,8 +196,8 @@ public class Compiler {
 			}
 			code = firstHalf;
 		}
-		
-		
+		//I do this because this memory location is used by the ifs and whiles to split the arguments from the statement.
+		openMemory++;
 		//TODO replacing all <var>+=<var2> operations with <var> = <var>+<var2>
 	}
 	
@@ -233,22 +229,35 @@ public class Compiler {
 		String allOps = "[*/+\\-%\\&|]|==|!=";
 		String[] priorities = {"[*/%]", "[+-]", "==|!=|<|>|<=|>=", "[|&]"};
 		//String[] avoids = {"", "[^*/%$0-9]", "[^*/\\-+%$0-9]", 
-		if(code.matches("\\$[0-9]+\\$=[0-9$]+\\;")){
-			return code.replaceAll("(.*)(\\;)", "$1+0$2");
-		}
-		final String md = "*/";
-		final String as = "+-";
+//		if(code.matches("\\$[0-9]+\\$=[0-9$]+\\;")){
+//			return code.replaceAll("(.*)(\\;)", "$1+0$2");
+//		}
 		//as 'code' is simplified, instructions will be appended on to the end of 'parsed'
 		String parsed = "";
 		//arithmetic memory
 		int arithMem = openMemory;
 		//This loop will keep running until the arithmetic operation ('code') is 
-		//condensed down to two numbers and an operation
-		while(!code.matches("[0-9$]+=([0-9$]+("+allOps+")[0-9$]+)\\;")){
+		//condensed down to two numbers and an operation.
+		//Or if it is condensed to a single '!' operation.
+		while(!code.matches("[0-9$]+=([0-9$]+("+allOps+")[0-9$]+)\\;") && !code.matches("[0-9$]+=![0-9$]+;")){
 			code = code.replaceAll("\\(([0-9$]+)\\)", "$1");
 			
 			String operation = "";
 			String avoid = "";
+			
+			//This accounts for all '!' operations
+			if(code.matches(".*![$0-9]+.*")){
+				//System.out.println("CODE: " + code);
+				//Moving the first individual '!' operation to the front of the 'code'
+				code = code.replaceFirst("(.*)(![$0-9]+)", "\\$"+arithMem+"\\$=$2;$1\\$"+arithMem+"\\$");
+				arithMem++;
+				//System.out.println("CODE: " + code);
+				parsed += code.substring(0, code.indexOf(";")+1);
+				code = code.substring(code.indexOf(";")+1, code.length());
+				//System.out.println("CODE: " + code);
+				continue;
+			}
+			
 			if(code.matches(".*[^*/$0-9][0-9$]+[*/%][0-9$]+.*")){
 				//System.out.println("mult");
 				operation = "[*/%]";
@@ -270,7 +279,7 @@ public class Compiler {
 			}else{
 				break;
 			}
-			//                      12       3                       4          5
+			//                        12       3                       4          5
 			code = code.replaceFirst("(([0-9$]+("+operation+")[0-9$]+))("+avoid+")(.*)", "\\$"+arithMem+"\\$$4$5\\$"+arithMem+"\\$=$2;");
 			code = code.replaceAll("\\(([0-9$]+)\\)", "$1");
 			arithMem++;
@@ -288,10 +297,17 @@ public class Compiler {
 		//replacing all assignment operations with their assembly equivalent
 		for(int j = 0; j < operations.length; j++){
 			for(int i = 0; i < 2; i++){
-				code = code.replaceAll("(^|\\;)\\$([0-9]+)\\$=([$0-9]+)"+operations[j]+"([$0-9]+)\\;", "$1"+opNames[j]+" $2 $3 $4;");
+				code = code.replaceAll("(^|;)\\$([0-9]+)\\$=([$0-9]+)"+operations[j]+"([$0-9]+)\\;", "$1"+opNames[j]+" $2 $3 $4;");
 			}
 		}
 		
+		//Replacing all ! statements with their assembly equivalent
+		for(int i = 0; i < 2; i++)
+			code = code.replaceAll("(^|;)\\$([0-9]+)\\$=!([$0-9]+);", "$1not $2 $3;");
+		
+		//Replacing all assignment operations (such as $3$ = 50;) with their assembly equivalent
+		for(int i = 0; i < 2; i++)
+			code = code.replaceAll("(^|;)\\$([0-9]+)\\$=([$0-9]+);", "$1mov $2 $3;");
 		//The following code looks for all the unconditional jump statements and
 		//determines what statement number they are jumping to, then rewrites
 		//the jump statement to be "jmp <lines forward>;"
@@ -346,14 +362,17 @@ public class Compiler {
 				/* 
 				 * This code block is so that the instruction knows which number
 				 * should be treated as a memory location, and which should be
-				 * treated as a number
+				 * treated as a value
 				 */ 
 				{	
 					int j = 4;
 					if(instruction[0].equals("jif")) 
 						j = 1;
-					else if(instruction[0].matches("add|sub|mlt|div|mod|and|or|e|ne|l|g|le|ge"))
+					else if(instruction[0].matches("add|sub|mlt|div|mod|and|or|e|ne|l|g|le|ge|not|mov"))
 						j = 2;
+//					else if(instruction[0].equals("not"))
+//						j = 2;
+					
 					for(; j < instruction.length; j++){
 						if(instruction[j].matches("\\$[0-9]+\\$")){
 							instruction[0]+="l";
@@ -363,27 +382,10 @@ public class Compiler {
 						instruction[j] = instruction[j].replaceAll("\\$([0-9]+)\\$", "$1");
 					}
 				}
-//				if(instruction[0].matches("(add)|(sub)|(mlt)|(div)|(mod)|(and)|(or)|(e)|(ne)")){
-//					if(instruction.length != 4){
-//						System.out.println("Error: incorrect number or arguments in assignment operation.");
-//					}
-//					if(instruction[2].matches("\\$[0-9]+\\$")){
-//						instruction[0]+="l";
-//					}else{
-//						instruction[0]+="v";
-//					}
-//					if(instruction[3].matches("\\$[0-9]+\\$")){
-//						instruction[0]+="l";
-//					}else{
-//						instruction[0]+="v";
-//					}
-//					for(int j = 1; j < 4; j++){
-//						instruction[j] = instruction[j].replaceAll("\\$([0-9]+)\\$", "$1");
-//					}
-//				}
+
 				//replacing the instruction type name with its bytecode id
-				System.out.println(""+instruction[0]);
-				instruction[0] = AssemblyExecutor.possibleInstructions.get(instruction[0]).toString();
+				//System.out.println(""+instruction[0]);
+				instruction[0] = BytecodeExecutor.possibleInstructions.get(instruction[0]).toString();
 				
 				statement = "";
 				for(int j = 0; j < 4; j++){
@@ -403,11 +405,17 @@ public class Compiler {
 		code = firstHalf;
 	}
 	
-	private void writeByteCode(){
-		String[] byteCode = code.trim().split(" ");
-		for(int i = 0; i < byteCode.length; i++){
-			run.putByte(i, Integer.parseInt(byteCode[i]));
+	private int[] writeByteCode(){
+		LinkedList<Integer> bytecode = new LinkedList<>();
+		
+		String[] bytecodeStrings = code.trim().split(" ");
+		for(int i = 0; i < bytecodeStrings.length; i++){
+			//run.putByte(i, Integer.parseInt(byteCode[i]));
+			bytecode.add(Integer.parseInt(bytecodeStrings[i]));
 		}
+		
+		int[] bytecodeInts = bytecode.stream().mapToInt(i -> i).toArray();
+		return bytecodeInts;
 	}
 	//finds the index of the closing brace that corresponds to the open brace at index
 	//'openBrace' in 'code'
@@ -433,7 +441,7 @@ public class Compiler {
 			return i;
 		}
 	}
-	public void setFile(File file){
+	public void setCodeFromFile(File file){
 		try{
 			byte[] bytes = Files.readAllBytes(file.toPath());
 			this.code = new String(bytes);
@@ -442,6 +450,10 @@ public class Compiler {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void setCode(String code){
+		this.code = code;
 	}
 	public String toString(){
 		return code.replaceAll("\\;", ";\n");

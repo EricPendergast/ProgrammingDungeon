@@ -6,7 +6,7 @@ import java.util.HashMap;
 import javax.swing.*;
 
 /**
- *
+ * This is where all the swing stuff is handled.
  * @author eric
  */
 public class GUIHandler {
@@ -18,50 +18,35 @@ public class GUIHandler {
 	public static int frameHeight = 800;
     private final JFrame frame;
 	private final JPanel parentPanel;
-	//private final JPanel mainMenu;
-	//private final GameGUI game;
-//	private JButton startButton;
-//	private JButton testButton = new JButton("TEST");
+	
+	private boolean isRunning = false;
     public GUIHandler(){
 		screens = new HashMap<>();
 		activeScreen = null;
 		screenRenderer = new ScreenRenderer(null);
 		frame = new JFrame("TITLE");
 		frame.setSize(frameWidth, frameHeight);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setResizable(false);
+		//adding the action listeners
+		{
+			frame.addWindowListener(new WindowListener(){
+				public void windowOpened(WindowEvent windowEvent){}
+				public void windowClosing(WindowEvent windowEvent){
+					stop();
+				}
+				public void windowClosed(WindowEvent windowEvent){}
+				public void windowIconified(WindowEvent windowEvent){}
+				public void windowDeiconified(WindowEvent windowEvent){}
+				public void windowActivated(WindowEvent windowEvent){}
+				public void windowDeactivated(WindowEvent windowEvent){}
+			});
+		}
+		
 		
 		parentPanel = new JPanel();
 		parentPanel.setLayout(new CardLayout());
 		frame.add(parentPanel);
 		parentPanel.add(screenRenderer);
-		
-//		mainMenu = new JPanel();
-//		mainMenu.setLayout(new GridBagLayout());
-//		GridBagConstraints c = new GridBagConstraints();
-//		
-//		{//making the main menu buttons
-//			startButton = new JButton("Start");
-//			startButton.addActionListener((ActionEvent e) -> {
-//				((CardLayout)(parentPanel.getLayout())).show(parentPanel, "GAME");
-//			});
-//			c.fill = GridBagConstraints.BOTH;
-//			c.gridx = 0; c.gridy = 0;
-//			c.weightx = c.weighty = 1;
-//			mainMenu.add(startButton, c);
-//			mainMenu.setEnabled(true);
-//			c.gridx = c.gridy = 1;
-//			c.weightx = c.weighty = 1;
-//			JPanel p = new JPanel();
-//			p.setBackground(Color.yellow);
-//			mainMenu.add(testButton, c);
-//		}
-//		parentPanel.add(mainMenu, "MAINMENU");
-		
-//		mainMenu = new MainMenuGUI(parentPanel);
-//		parentPanel.add(mainMenu);
-//
-//		game = new GameGUI();
-//		parentPanel.add(game, "GAME");
 	}
 	
 	//Deactivates the current screen, then replaces it with the new screen, then activates the new screen
@@ -81,12 +66,17 @@ public class GUIHandler {
 	}
 	
 	public void startRunning(){
+		isRunning = true;
 		frame.setVisible(true);
-		while(true){
+		while(isRunning){
 			frame.repaint();
 			try{
 				Thread.sleep(refreshTime);
 			}catch(InterruptedException e){e.printStackTrace();}
 		}
+	}
+	
+	public void stop(){
+		isRunning = false;
 	}
 }
