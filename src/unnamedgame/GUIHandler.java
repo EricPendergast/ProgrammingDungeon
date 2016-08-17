@@ -1,5 +1,7 @@
 package unnamedgame;
 
+import render.RenderGame;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
@@ -9,15 +11,19 @@ import javax.swing.*;
  * This is where all the swing stuff is handled.
  * @author eric
  */
-public class GUIHandler {
+public class GUIHandler{
 	private HashMap<String, Screen> screens;
 	private Screen activeScreen;
 	private ScreenRenderer screenRenderer;
 	private final int refreshTime = 1000/120;
-	public static int frameWidth = 800;
-	public static int frameHeight = 800;
+	public static int frameWidth = (int)(RenderGame.SCREEN_TILE_WIDTH * RenderGame.TILE_SIZE * ScreenRenderer.scale);
+	public static int frameHeight = (int)(RenderGame.SCREEN_TILE_HEIGHT * RenderGame.TILE_SIZE * ScreenRenderer.scale);
     private final JFrame frame;
 	private final JPanel parentPanel;
+	//keys[i] is whether or not the key with keycode 'i' is being pressed
+	public static final boolean[] keys = new boolean[100];
+	//keyTimes[i] is the time that the key with keycode 'i' was last pressed, in nanoseconds
+	public static final long[] keyTimes = new long[100];
 	
 	private boolean isRunning = false;
     public GUIHandler(){
@@ -27,6 +33,7 @@ public class GUIHandler {
 		frame = new JFrame("TITLE");
 		frame.setSize(frameWidth, frameHeight);
 		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//adding the action listeners
 		{
 			frame.addWindowListener(new WindowListener(){
@@ -39,6 +46,16 @@ public class GUIHandler {
 				public void windowDeiconified(WindowEvent windowEvent){}
 				public void windowActivated(WindowEvent windowEvent){}
 				public void windowDeactivated(WindowEvent windowEvent){}
+			});
+			frame.addKeyListener(new KeyListener(){
+				public void keyPressed(KeyEvent e){
+					keys[e.getKeyCode()] = true;
+					keyTimes[e.getKeyCode()] = System.nanoTime();
+				}
+				public void keyReleased(KeyEvent e){
+					keys[e.getKeyCode()] = false;
+				}
+				public void keyTyped(KeyEvent keyEvent){}
 			});
 		}
 		

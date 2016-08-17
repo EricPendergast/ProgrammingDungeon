@@ -13,6 +13,7 @@ import java.io.ObjectOutputStream;
 import render.RenderGame;
 import update.UpdateGame;
 import update.actions.PutEntityAction;
+import update.entities.Player;
 import update.entities.TestEntity;
 
 /**
@@ -57,6 +58,7 @@ public class _Main{
 			if(updater == null){
 				updater = new UpdateGame();
 				updater.addAction(new PutEntityAction(new TestEntity(), new int[]{0, 0}));
+				updater.addPlayer(new Player(), new int[]{0,1});
 			}
 			RenderGame renderer = new RenderGame(updater);
 			

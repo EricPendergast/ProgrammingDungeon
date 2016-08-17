@@ -26,9 +26,9 @@ public class DisplaceEntityAction implements Action{
 //		if(!(Ops.matrixContainsPoint(tiles, entity.getX(), entity.getY()) || Ops.matrixContainsPoint(tiles, entity.getX() + displacement[0], entity.getY() + displacement[1]))){
 //			return;
 //		}
+		//the tile that contains 'entity'
+		Tile tileWithEntity = tiles[entity.getX()][entity.getY()];
 		try{
-			//the tile that contains 'entity'
-			Tile tileWithEntity = tiles[entity.getX()][entity.getY()];
 			//the tile that 'entity' will move to
 			Tile tileToMoveTo = tiles[entity.getX() + displacement[0]][entity.getY() + displacement[1]];
 
@@ -36,8 +36,6 @@ public class DisplaceEntityAction implements Action{
 				tileToMoveTo.setEntity(entity);
 				tileWithEntity.setEntity(null);
 			}
-		}catch(ArrayIndexOutOfBoundsException e){
-			e.printStackTrace();
-		}
+		}catch(ArrayIndexOutOfBoundsException e){}
 	}
 }

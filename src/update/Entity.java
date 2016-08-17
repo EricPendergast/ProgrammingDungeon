@@ -7,6 +7,7 @@ package update;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.LinkedList;
 
 /**
  *
@@ -36,7 +37,7 @@ public abstract class Entity implements Serializable{
 		compiler = new Compiler();
 	}
 	public int[] pos = null;
-	public abstract Action update(Tile parent);
+	public abstract void update(Tile parent, LinkedList<Action> actions);
 	public String renderGetInfo(){return "@default";}
 	protected void executeInstructions(){
 		BytecodeExecutor.execute(instruc, memory);

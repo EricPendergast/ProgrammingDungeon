@@ -25,12 +25,10 @@ public class Tile implements Serializable{
 		
 	}
 	
-	public LinkedList<Action> update(){
-		LinkedList<Action> actions = new LinkedList<>();
+	public void update(LinkedList<Action> actions){
 		if(entity != null){
-			actions.add(entity.update(this));
+			entity.update(this, actions);
 		}
-		return actions;
 	}
 	
 	public Entity getEntity(){return entity;}
@@ -48,6 +46,13 @@ public class Tile implements Serializable{
 	//Documentation for what this should return is in the RenderGame class
 	public String renderGetInfo(){
 		String renderInfo = "";
+		if(this.hashCode()%10!=0){
+			renderInfo += "@grass";
+		}else if(this.hashCode()%3==0){
+			renderInfo += "@grassrock";
+		}else{
+			renderInfo += "@grassflower";
+		}
 		//TODO render block
 		//TODO render secondary entity
 		if(entity != null){

@@ -26,9 +26,10 @@ public class MoveEntityAction implements Action{
 	//and the space 'entity' is trying to move to does not contain another entity
 	@Override
 	public void act(Tile[][] tiles) {
+		//the tile that contains 'entity'
+		Tile tileWithEntity = tiles[entity.getX()][entity.getY()];
+		
 		try{
-			//the tile that contains 'entity'
-			Tile tileWithEntity = tiles[entity.getX()][entity.getY()];
 			//the tile that 'entity' will move to
 			Tile tileToMoveTo = tiles[newPos[0]][newPos[1]];
 
@@ -36,8 +37,6 @@ public class MoveEntityAction implements Action{
 				tileToMoveTo.setEntity(entity);
 				tileWithEntity.setEntity(null);
 			}
-		}catch(ArrayIndexOutOfBoundsException e){
-			e.printStackTrace();
-		}
+		}catch(ArrayIndexOutOfBoundsException e){}
 	}
 }

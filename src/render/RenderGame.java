@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import unnamedgame.GUIHandler;
 import update.Tile;
 import update.UpdateGame;
+import update.entities.Player;
 
 /**
  *
@@ -53,6 +54,7 @@ public class RenderGame implements Runnable{
 			}
 		}
 	}
+	
 	@Override
 	public void run() {
 		isRunning = true;
@@ -80,16 +82,27 @@ public class RenderGame implements Runnable{
 		}
 	}
 	
-	/*render info strings documentation:
-	They are all in the format of "@<texture>#<modifier><value>#...@..."
-	Each texture will be rendered in the order they appear, with the modifiers
-	applied.
-	List of modifiers:
-		#a<number of frames> - (a)nimation, its value is the number of frames.
-			if this option is here, the tile renderer will look for texture files
-			named <number>@<texture>
-	*/
-	public void drawGraphics(Graphics2D g2){
+	/* render info strings documentation:
+	 * They are all in the format of "@<texture>#<modifier><value>#...@..."
+	 * Each texture will be rendered in the order they appear, with the modifiers
+	 * applied.
+	 * List of modifiers:
+	 * 		#a<number of frames> - (a)nimation, its value is the number of frames.
+	 * 			if this option is here, the tile renderer will look for texture files
+	 * 		named <number><texture>
+	 *
+	 * 		#x<number to offset by> - x offset. Offsets the texture in the x direction
+	 * 		by the number of tiles given. 'x' can be a float.
+	 *
+	 * 		#y<number to offset by> - y offset. Offsets the texture in the y direction
+	 * 		by the number of tiles given. 'y' can be a float.
+	 *
+	 */
+	private void drawGraphics(Graphics2D g2){
+		{
+			Player player = updater.renderGetPlayer();
+			g2.translate(-player.renderGetX()*TILE_SIZE, player.renderGetY()*TILE_SIZE);
+		}
 		//Point offset = new Point(0,0);
 		Tile[][] tiles = updater.renderGetTiles();
 		for(int i = 0; i < tiles.length; i++){

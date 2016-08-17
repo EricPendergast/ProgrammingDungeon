@@ -7,7 +7,7 @@ import java.awt.*;
  * Created by eric on 7/30/16.
  */
 public class ScreenRenderer extends JComponent{
-	private double scale = 5;
+	public final static double scale = 10;
 	private Screen screen;
 	public ScreenRenderer(Screen s){
 		screen = s;

@@ -6,6 +6,8 @@
 package update.entities;
 
 import java.io.File;
+import java.util.LinkedList;
+
 import update.Action;
 import update.Entity;
 import update.Tile;
@@ -33,9 +35,9 @@ public class TestEntity extends Entity{
 	//keeps track of how many times update(Tile parent) has been called
 	int counter = 0;
 	@Override
-	public Action update(Tile parent) {
+	public void update(Tile parent, LinkedList<Action> actions) {
 		super.executeInstructions();
-		System.out.println(super.dumpMemory());
+		//System.out.println(super.dumpMemory());
 		if(getX() > 5){
 			memory[isAtRight] = 1;
 			//System.out.println("greater");
@@ -44,10 +46,12 @@ public class TestEntity extends Entity{
 		}
 		counter++;
 		if(counter % 10 == 0 && memory[isMovingLeft] == 0){
-			return new DisplaceEntityAction(this, new int[]{1,0});
-		}else{
-			return null;
+			actions.add(new DisplaceEntityAction(this, new int[]{1,0}));
 		}
 	}
 	
+	@Override
+	public String renderGetInfo(){
+		return "@human@humanShoes@humanBlueShirt@humanBluePants";
+	}
 }
